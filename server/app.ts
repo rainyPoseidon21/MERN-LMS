@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { ErrorMiddleWare } from "./middleware/error";
 
 require("dotenv").config();
 
@@ -31,9 +32,11 @@ app.get("/test", (req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-// handling api unknow route
+// handling api unknown route
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   const err = new Error(`Route ${req.originalUrl} not found.`) as any;
   err.statusCode = 484;
   next(err);
 });
+
+app.use(ErrorMiddleWare);
