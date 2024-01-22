@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { ErrorMiddleWare } from "./middleware/error";
+import userRouter from "./routes/user.route";
 
 require("dotenv").config();
 
@@ -23,6 +24,9 @@ app.use(
     origin: process.env.ORIGIN,
   })
 );
+
+// routes
+app.use("/api/v1", userRouter);
 
 // testing api
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
