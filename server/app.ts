@@ -43,4 +43,5 @@ app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(err);
 });
 
-// app.use(ErrorMiddleWare);
+// other default error handling
+app.use(ErrorMiddleWare);
