@@ -6,6 +6,7 @@ import {
   logoutUser,
 } from "../controllers/user.controller";
 import { CatchAsyncError } from "../middleware/catchAsyncError";
+import { isAuthenticated } from "../middleware/auth";
 
 const userRouter = express.Router();
 
@@ -29,6 +30,7 @@ userRouter.post("/login", (req: Request, res: Response, next: NextFunction) => {
 
 userRouter.post(
   "/logout",
+  isAuthenticated,
   (req: Request, res: Response, next: NextFunction) => {
     CatchAsyncError(logoutUser(req, res, next));
   }
