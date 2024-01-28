@@ -4,6 +4,9 @@ import {
   activateUser,
   loginUser,
   logoutUser,
+  updateAccessToken,
+  getUserInfo,
+  socialAuth,
 } from "../controllers/user.controller";
 import { CatchAsyncError } from "../middleware/catchAsyncError";
 import { isAuthenticated } from "../middleware/auth";
@@ -33,6 +36,28 @@ userRouter.post(
   isAuthenticated,
   (req: Request, res: Response, next: NextFunction) => {
     CatchAsyncError(logoutUser(req, res, next));
+  }
+);
+
+userRouter.get(
+  "/refreshToken",
+  (req: Request, res: Response, next: NextFunction) => {
+    CatchAsyncError(updateAccessToken(req, res, next));
+  }
+);
+
+userRouter.get(
+  "/getUserInfo",
+  isAuthenticated,
+  (req: Request, res: Response, next: NextFunction) => {
+    CatchAsyncError(getUserInfo(req, res, next));
+  }
+);
+
+userRouter.post(
+  "/socialAuth",
+  (req: Request, res: Response, next: NextFunction) => {
+    CatchAsyncError(socialAuth(req, res, next));
   }
 );
 
