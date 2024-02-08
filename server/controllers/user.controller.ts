@@ -10,7 +10,6 @@ import {
   sendToken,
 } from "../utils/jwt";
 import { redis } from "../utils/redis";
-import { get } from "http";
 import { getUserById } from "../services/user.service";
 require("dotenv").config();
 
@@ -255,6 +254,9 @@ export const getUserInfo = async (
 ) => {
   try {
     const userId = req.user?._id;
+    if (userId === undefined) {
+      return next(new ErrorHandler("Could not find any logged user.", 400));
+    }
     await getUserById(userId, res);
   } catch (error: any) {
     console.log(req.body._id);
@@ -285,6 +287,98 @@ export const socialAuth = async (
     } else {
       sendToken(user, 200, res);
     }
+  } catch (error: any) {
+    return next(new ErrorHandler(error.message, 400));
+  }
+};
+
+// update user info
+interface IUpdateUserInfo {
+  name: string;
+  email: string;
+}
+
+export const updateUserInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { email, name } = req.body as IUpdateUserInfo;
+    const userId = req.user?._id;
+    if (userId === undefined) {
+      return next(new ErrorHandler("Could not find any logged user.", 400));
+    }
+    const user = await userModel.findById(userId);
+    if (email && user) {
+      const isEmailExist = await userModel.findOne({ email });
+      if (isEmailExist) {
+        return next(new ErrorHandler("Email already exist.", 400));
+      }
+      user.email = email;
+    }
+
+    if (user && name) {
+      user.name = name;
+    }
+
+    await user?.save();
+
+    await redis.set(user?._id, JSON.stringify(user));
+
+    res.status(201).json({
+      success: true,
+      user,
+    });
+  } catch (error: any) {
+    return next(new ErrorHandler(error.message, 400));
+  }
+};
+
+// update user password
+interface IUpdateUserPassword {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export const updateUserPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { oldPassword, newPassword } = req.body as IUpdateUserPassword;
+    const userId = req.user?._id;
+
+    if (userId === undefined) {
+      return next(new ErrorHandler("Could not find any logged user.", 400));
+    }
+    const user = await userModel.findById(userId).select("+password");
+    if (user && oldPassword) {
+      const isPasswordMatch = await user.ComparePassword(oldPassword);
+      if (isPasswordMatch) {
+        user.password = newPassword;
+        await user.save();
+      } else {
+        return next(
+          new ErrorHandler(
+            "The old password is not matched the one in database",
+            400
+          )
+        );
+      }
+    } else {
+      return next(
+        new ErrorHandler(
+          "The user is either not authenticated or the old password is not defined.",
+          400
+        )
+      );
+    }
+    res.status(201).json({
+      success: true,
+      user,
+    });
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 400));
   }

@@ -7,6 +7,8 @@ import {
   updateAccessToken,
   getUserInfo,
   socialAuth,
+  updateUserInfo,
+  updateUserPassword,
 } from "../controllers/user.controller";
 import { CatchAsyncError } from "../middleware/catchAsyncError";
 import { isAuthenticated } from "../middleware/auth";
@@ -46,6 +48,7 @@ userRouter.get(
   }
 );
 
+// this authenticated will return the user info (current logged in user)
 userRouter.get(
   "/getUserInfo",
   isAuthenticated,
@@ -61,4 +64,21 @@ userRouter.post(
   }
 );
 
+// update logged user email or name
+userRouter.put(
+  "/updateUser",
+  isAuthenticated,
+  (req: Request, res: Response, next: NextFunction) => {
+    CatchAsyncError(updateUserInfo(req, res, next));
+  }
+);
+
+// update logged user password
+userRouter.put(
+  "/updateUserPassword",
+  isAuthenticated,
+  (req: Request, res: Response, next: NextFunction) => {
+    CatchAsyncError(updateUserPassword(req, res, next));
+  }
+);
 export default userRouter;
